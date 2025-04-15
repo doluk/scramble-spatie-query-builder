@@ -7,7 +7,7 @@ This is the Scramble extension, which detects the usage of the Spatie query buil
 ## Installation
 
 ```
-composer install exonn-gmbh/scramble-spatie-query-builder
+composer require exonn-gmbh/scramble-spatie-query-builder
 ```
 
 ## Usage
