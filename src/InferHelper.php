@@ -20,7 +20,18 @@ class InferHelper
 
         // ->allowedIncludes(['posts', 'posts.author'])
         if ($methodCall->args[0]->value instanceof Node\Expr\Array_) {
-            return array_map(fn (Node\Expr\ArrayItem $item) => $item->value->value, $methodCall->args[0]->value->items);
+            return array_map(function (Node\Expr\ArrayItem $item) {
+
+                if ($item->value instanceof Node\Scalar\String_) {
+                    return $item->value->value;
+                }
+
+                if ($item->value instanceof Node\Expr\StaticCall) {
+                    return $this->inferValueFromStaticCall($item->value);
+                }
+
+                return self::NOT_SUPPORTED_KEY;
+            }, $methodCall->args[0]->value->items);
         }
 
         // ->allowedIncludes('posts', 'posts.author')
@@ -124,10 +135,14 @@ class InferHelper
 
     public function inferValueFromStaticCall(Node\Expr\StaticCall $node)
     {
-        switch ($node->class->name) {
+        $className = $node->class instanceof Node\Name ? $node->class->toString() : null;
+
+        switch ($className) {
             case 'AllowedFilter':
+            case 'Spatie\QueryBuilder\AllowedFilter':
                 return $this->inferValueFromAllowedFilter($node);
             case 'AllowedSort':
+            case 'Spatie\QueryBuilder\AllowedSort':
                 return $this->inferValueFromAllowedSort($node);
             default:
                 return self::NOT_SUPPORTED_KEY;
@@ -138,18 +153,25 @@ class InferHelper
     {
         switch ($node->name->name) {
             case 'autoDetect':
-                if ($node->args[1]->value instanceof Node\Scalar\String_) {
+                if (isset($node->args[1]) && $node->args[1]->value instanceof Node\Scalar\String_) {
                     return $node->args[1]->value->value;
                 }
 
                 return self::NOT_SUPPORTED_KEY;
+            case 'trashed':
+                if (count($node->args) === 0) {
+                    return 'trashed';
+                }
             case 'callback':
             case 'partial':
             case 'custom':
             case 'exact':
             case 'beginsWithStrict':
             case 'endsWithStrict':
-                if ($node->args[0]->value instanceof Node\Scalar\String_) {
+            case 'scope':
+            case 'belongsTo':
+            case 'operator':
+                if (isset($node->args[0]) && $node->args[0]->value instanceof Node\Scalar\String_) {
                     return $node->args[0]->value->value;
                 }
             default:
@@ -162,7 +184,8 @@ class InferHelper
         switch ($node->name->name) {
             case 'callback':
             case 'field':
-                if ($node->args[0]->value instanceof Node\Scalar\String_) {
+            case 'custom':
+                if (isset($node->args[0]) && $node->args[0]->value instanceof Node\Scalar\String_) {
                     return $node->args[0]->value->value;
                 }
             default:
