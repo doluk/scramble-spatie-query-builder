@@ -5,11 +5,15 @@ namespace Exonn\ScrambleSpatieQueryBuilder;
 use Dedoc\Scramble\Infer\Services\FileParser;
 use Dedoc\Scramble\Support\RouteInfo;
 use PhpParser\Node;
+use PhpParser\Node\ArrayItem;
 use PhpParser\NodeFinder;
+use ReflectionClass;
+use Spatie\QueryBuilder\AllowedFilter;
+use Spatie\QueryBuilder\AllowedSort;
 
 class InferHelper
 {
-    const NOT_SUPPORTED_KEY = '--not_supported--';
+    const string NOT_SUPPORTED_KEY = '--not_supported--';
 
     public function inferValues(Node\Expr\MethodCall $methodCall, RouteInfo $routeInfo): array
     {
@@ -20,7 +24,7 @@ class InferHelper
 
         // ->allowedIncludes(['posts', 'posts.author'])
         if ($methodCall->args[0]->value instanceof Node\Expr\Array_) {
-            return array_map(function (Node\Expr\ArrayItem $item) {
+            return array_map(function (ArrayItem $item) {
 
                 if ($item->value instanceof Node\Scalar\String_) {
                     return $item->value->value;
@@ -36,7 +40,7 @@ class InferHelper
 
         // ->allowedIncludes('posts', 'posts.author')
         if ($methodCall->args[0]->value instanceof Node\Scalar\String_) {
-            return array_map(fn (Node\Arg $arg) => $arg->value->value, $methodCall->args);
+            return array_map(static fn (Node\Arg $arg) => $arg->value->value, $methodCall->args);
         }
 
         // ->allowedIncludes($this->includes)
@@ -82,7 +86,7 @@ class InferHelper
         }
 
         return array_map(
-            function (Node\ArrayItem $item) {
+            function (ArrayItem $item) {
                 if ($item->value instanceof Node\Scalar\String_) {
                     return $item->value->value;
                 }
@@ -97,10 +101,13 @@ class InferHelper
         );
     }
 
-    public function getControllerClassContent(RouteInfo $routeInfo)
+    /**
+     * @throws \ReflectionException
+     */
+    public function getControllerClassContent(RouteInfo $routeInfo): false|string
     {
         [$class] = explode('@', $routeInfo->route->getAction('uses'));
-        $reflection = new \ReflectionClass($class);
+        $reflection = new ReflectionClass($class);
 
         return file_get_contents($reflection->getFileName());
     }
@@ -128,7 +135,7 @@ class InferHelper
         }
 
         return array_map(
-            fn (Node\ArrayItem $item) => $item->value->value,
+            static fn (ArrayItem $item) => $item->value->value,
             $node->props[0]->default->items
         );
     }
@@ -137,16 +144,11 @@ class InferHelper
     {
         $className = $node->class instanceof Node\Name ? $node->class->toString() : null;
 
-        switch ($className) {
-            case 'AllowedFilter':
-            case 'Spatie\QueryBuilder\AllowedFilter':
-                return $this->inferValueFromAllowedFilter($node);
-            case 'AllowedSort':
-            case 'Spatie\QueryBuilder\AllowedSort':
-                return $this->inferValueFromAllowedSort($node);
-            default:
-                return self::NOT_SUPPORTED_KEY;
-        }
+        return match ($className) {
+            'AllowedFilter', AllowedFilter::class => $this->inferValueFromAllowedFilter($node),
+            'AllowedSort', AllowedSort::class => $this->inferValueFromAllowedSort($node),
+            default => self::NOT_SUPPORTED_KEY,
+        };
     }
 
     public function inferValueFromAllowedFilter(Node\Expr\StaticCall $node)

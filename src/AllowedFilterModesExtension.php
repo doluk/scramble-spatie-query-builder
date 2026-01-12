@@ -14,7 +14,7 @@ class AllowedFilterModesExtension extends OperationExtension
 {
     use Hookable;
 
-    const MethodName = 'allowedFilters';
+    const string MethodName = 'allowedFilters';
 
     public array $examples = ['[name]=starts_with', '[email]=exact'];
 

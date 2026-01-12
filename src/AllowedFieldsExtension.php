@@ -15,7 +15,7 @@ class AllowedFieldsExtension extends OperationExtension
 {
     use Hookable;
 
-    const MethodName = 'allowedFields';
+    const string MethodName = 'allowedFields';
 
     public array $examples = ['id', 'title', 'posts.id'];
 

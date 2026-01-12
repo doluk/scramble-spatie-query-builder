@@ -15,7 +15,7 @@ class AllowedIncludesExtension extends OperationExtension
 {
     use Hookable;
 
-    const MethodName = 'allowedIncludes';
+    const string MethodName = 'allowedIncludes';
 
     public array $examples = ['posts', 'posts.comments', 'books'];
 

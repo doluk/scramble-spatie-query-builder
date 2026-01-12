@@ -15,7 +15,7 @@ class AllowedSortsExtension extends OperationExtension
 {
     use Hookable;
 
-    const MethodName = 'allowedSorts';
+    const string MethodName = 'allowedSorts';
 
     public array $examples = ['title', '-title', 'title,-id'];
 
@@ -35,7 +35,7 @@ class AllowedSortsExtension extends OperationExtension
         $arrayType = new ArrayType;
         $arrayType->items->enum(array_merge(
             $values,
-            array_map(fn ($value) => '-'.$value, $values)
+            array_map(static fn ($value) => '-'.$value, $values)
         ));
 
         $parameter = new Parameter(config($this->configKey), 'query');
