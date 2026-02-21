@@ -37,13 +37,15 @@ class AllowedSortsExtension extends OperationExtension
             $values,
             array_map(static fn ($value) => '-'.$value, $values)
         ));
-
+        $values_string = implode(' ,', array_map(static fn ($value) => '`'.$value . '`', $values));
         $parameter = new Parameter(config($this->configKey), 'query');
+        $example = $values[0];
+        if (count($values) > 1){
+            $example = $values[1] . ',-' . $values[0];
+        }
 
-        $parameter->setSchema(Schema::fromType((new AnyOf)->setItems([
-            new StringType,
-            $arrayType,
-        ])))->example($this->examples);
+        $parameter->description('Available sorts are ' . $values_string . '. You can sort by multiple options by separating them with `,` . To sort in descending order, use `-` sign in front of the sort, for example: `-' . $values[0] . '`');
+        $parameter->setSchema(Schema::fromType(new StringType))->example($example);
 
         $halt = $this->runHooks($operation, $parameter);
         if (! $halt) {

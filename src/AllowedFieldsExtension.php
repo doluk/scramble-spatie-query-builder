@@ -21,7 +21,7 @@ class AllowedFieldsExtension extends OperationExtension
 
     public string $configKey = 'query-builder.parameters.fields';
 
-    public function handle(Operation $operation, RouteInfo $routeInfo)
+    public function handle(Operation $operation, RouteInfo $routeInfo): void
     {
         $helper = new InferHelper;
         $methodCall = Utils::findMethodCall($routeInfo, self::MethodName);

@@ -3,6 +3,7 @@
 namespace Exonn\ScrambleSpatieQueryBuilder;
 
 use Dedoc\Scramble\Extensions\OperationExtension;
+use Dedoc\Scramble\Support\Generator\Combined\AnyOf;
 use Dedoc\Scramble\Support\Generator\Operation;
 use Dedoc\Scramble\Support\Generator\Parameter;
 use Dedoc\Scramble\Support\Generator\Schema;
@@ -44,18 +45,27 @@ class AllowedFiltersExtension extends OperationExtension
         $modelClass = Utils::findModel($methodCall);
         $inferModelDefinition = $modelClass ? $this->infer->analyzeClass($modelClass) : null;
 
-        $parameter = new Parameter(config($this->configKey), 'query');
-        $objectType = new ObjectType;
-        foreach ($values as $value) {
-            $type = $this->inferType($modelClass, $inferModelDefinition, $value);
-            $objectType->addProperty($value, $type);
-        }
-        $parameter->setSchema(Schema::fromType($objectType))
-            ->example($this->examples)->description('Allowed filters. Use comma to separate multiple filters.');
 
-        $halt = $this->runHooks($operation, $parameter);
-        if (! $halt) {
-            $operation->addParameters([$parameter]);
+
+        foreach ($values as $value) {
+            $parameter = new Parameter(config($this->configKey)."[$value]", 'query');
+            $type = $this->inferType($modelClass, $inferModelDefinition, $value);
+            $types = [$type];
+            if (!$type instanceof StringType){
+                $types[] = new StringType;
+            }
+            $parameter->setSchema(Schema::fromType(new StringType()));
+            if ($type instanceof StringType){
+                $parameter->example("name");
+            }
+            elseif ($type instanceof NumberType){
+                $parameter->example("1");
+            }
+            $parameter->description("Filter by `$value`. Multiple filter values can be provided using `,` as a separator.");
+            $halt = $this->runHooks($operation, $parameter);
+            if (! $halt) {
+                $operation->addParameters([$parameter]);
+            }
         }
     }
 

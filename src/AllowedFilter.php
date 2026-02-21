@@ -9,7 +9,7 @@ class AllowedFilter extends SpatieAllowedFilter
 {
     const string FilterModesQueryParamConfigKey = 'query-builder.parameters.filter_mode';
 
-    public static function autoDetect(Request $request, string $key, FilterModeEnum $default_mode = FilterModeEnum::Contains)
+    public static function autoDetect(Request $request, string $key, FilterModeEnum $default_mode = FilterModeEnum::Contains): self
     {
         $mode = $request->input(config(self::FilterModesQueryParamConfigKey).'.'.$key) ?? $default_mode->value;
 
