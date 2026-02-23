@@ -1,15 +1,21 @@
 <?php
 
+namespace Exonn\ScrambleSpatieQueryBuilder\Tests\Unit;
+
 use Exonn\ScrambleSpatieQueryBuilder\AllowedFiltersExtension;
+use Exonn\ScrambleSpatieQueryBuilder\Tests\TestCase;
+use Illuminate;
 use Illuminate\Support\Facades\Route;
+
+uses(TestCase::class);
 
 test('test AllowedFiltersExtensions', function () {
 
     $queryParam = 'filter';
 
-    config()->set('query-builder.parameters.filter', $queryParam);
+    app('config')->set('query-builder.parameters.filter', $queryParam);
 
-    $result = generateForRoute(
+    $result = $this->generateForRoute(
         fn() => Route::get('test', [AllowedFiltersExtensionController::class, 'a']),
         [AllowedFiltersExtension::class]
     );

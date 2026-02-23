@@ -1,15 +1,21 @@
 <?php
 
+namespace Exonn\ScrambleSpatieQueryBuilder\Tests\Unit;
+
 use Exonn\ScrambleSpatieQueryBuilder\AllowedIncludesExtension;
+use Exonn\ScrambleSpatieQueryBuilder\Tests\TestCase;
+use Illuminate;
 use Illuminate\Support\Facades\Route;
+
+uses(TestCase::class);
 
 test('test AllowedIncludesExtensions', function () {
 
     $queryParam = 'include';
 
-    config()->set('query-builder.parameters.include', $queryParam);
+    app('config')->set('query-builder.parameters.include', $queryParam);
 
-    $result = generateForRoute(
+    $result = $this->generateForRoute(
         fn() => Route::get('test', [AllowedIncludesExtensionController::class, 'a']),
         [AllowedIncludesExtension::class]
     );

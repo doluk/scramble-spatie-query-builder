@@ -1,15 +1,21 @@
 <?php
 
+namespace Exonn\ScrambleSpatieQueryBuilder\Tests\Unit;
+
 use Exonn\ScrambleSpatieQueryBuilder\AllowedSortsExtension;
+use Exonn\ScrambleSpatieQueryBuilder\Tests\TestCase;
+use Illuminate;
 use Illuminate\Support\Facades\Route;
+
+uses(TestCase::class);
 
 test('test AllowedSortsExtensions', function () {
 
     $queryParam = 'sort';
 
-    config()->set('query-builder.parameters.sort', $queryParam);
+    app('config')->set('query-builder.parameters.sort', $queryParam);
 
-    $result = generateForRoute(
+    $result = $this->generateForRoute(
         fn() => Route::get('test', [AllowedSortsExtensionController::class, 'a']),
         [AllowedSortsExtension::class]
     );
