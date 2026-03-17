@@ -2,6 +2,7 @@
 
 namespace Exonn\ScrambleSpatieQueryBuilder\Tests;
 
+use Closure;
 use Dedoc\Scramble\Generator;
 use Dedoc\Scramble\Scramble;
 use Dedoc\Scramble\ScrambleServiceProvider;
@@ -17,14 +18,14 @@ use Orchestra\Testbench\TestCase as Orchestra;
 
 class TestCase extends Orchestra
 {
-    protected function getPackageProviders($app)
+    protected function getPackageProviders($app): array
     {
         return [
             ScrambleServiceProvider::class,
         ];
     }
 
-    protected function defineEnvironment($app)
+    protected function defineEnvironment($app): void
     {
         $app['config']->set('database.default', 'testing');
         $app['config']->set('database.connections.testing', [
@@ -34,7 +35,10 @@ class TestCase extends Orchestra
         ]);
     }
 
-    public function generateForRoute(\Closure $param, array $extensions = [])
+    /**
+     * @throws BindingResolutionException
+     */
+    public function generateForRoute(Closure $param, array $extensions = []): array
     {
         if (! method_exists(Scramble::class, 'configure')) {
             return $this->generateForRoutePre0dot12($param, $extensions);
@@ -62,7 +66,7 @@ class TestCase extends Orchestra
     /**
      * @throws BindingResolutionException
      */
-    public function generateForRoutePre0dot12(\Closure $param, array $extensions)
+    public function generateForRoutePre0dot12(Closure $param, array $extensions): array
     {
         $route = $param();
 

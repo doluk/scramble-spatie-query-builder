@@ -10,6 +10,7 @@ use Dedoc\Scramble\Support\Generator\Schema;
 use Dedoc\Scramble\Support\Generator\Types\ArrayType;
 use Dedoc\Scramble\Support\Generator\Types\StringType;
 use Dedoc\Scramble\Support\RouteInfo;
+use ReflectionException;
 
 class AllowedFieldsExtension extends OperationExtension
 {
@@ -21,12 +22,15 @@ class AllowedFieldsExtension extends OperationExtension
 
     public string $configKey = 'query-builder.parameters.fields';
 
+    /**
+     * @throws ReflectionException
+     */
     public function handle(Operation $operation, RouteInfo $routeInfo): void
     {
         $helper = new InferHelper;
         $methodCall = Utils::findMethodCall($routeInfo, self::MethodName);
 
-        if (! $methodCall) {
+        if (!$methodCall) {
             return;
         }
 
@@ -42,7 +46,7 @@ class AllowedFieldsExtension extends OperationExtension
         ])))->example($this->examples);
 
         $halt = $this->runHooks($operation, $parameter);
-        if (! $halt) {
+        if (!$halt) {
             $operation->addParameters([$parameter]);
         }
     }

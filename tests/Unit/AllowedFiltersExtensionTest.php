@@ -5,45 +5,52 @@ namespace Exonn\ScrambleSpatieQueryBuilder\Tests\Unit;
 use Exonn\ScrambleSpatieQueryBuilder\AllowedFiltersExtension;
 use Exonn\ScrambleSpatieQueryBuilder\Tests\TestCase;
 use Illuminate;
+use Illuminate\Contracts\Container\BindingResolutionException;
+use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Route;
+use Spatie\QueryBuilder\QueryBuilder;
 
 uses(TestCase::class);
 
-test('test AllowedFiltersExtensions', function () {
+test('test AllowedFiltersExtensions',
+    /**
+     * @throws BindingResolutionException
+     */
+    function () {
 
-    $queryParam = 'filter';
+        $queryParam = 'filter';
 
-    app('config')->set('query-builder.parameters.filter', $queryParam);
+        app('config')->set('query-builder.parameters.filter', $queryParam);
 
-    $result = $this->generateForRoute(
-        fn() => Route::get('test', [AllowedFiltersExtensionController::class, 'a']),
-        [AllowedFiltersExtension::class]
-    );
+        $result = $this->generateForRoute(
+            fn () => Route::get('test', [AllowedFiltersExtensionController::class, 'a']),
+            [AllowedFiltersExtension::class]
+        );
 
-    expect($result['paths']['/test']['get']['parameters'][0])->toBe([
-        'name' => $queryParam,
-        'in' => 'query',
-        'schema' => [
-            'type' => 'object',
-            'properties' => [
-                'foo' => [
-                    'type' => 'string',
-                ],
-                'bar' => [
-                    'type' => 'string',
+        expect($result['paths']['/test']['get']['parameters'][0])->toBe([
+            'name' => $queryParam,
+            'in' => 'query',
+            'schema' => [
+                'type' => 'object',
+                'properties' => [
+                    'foo' => [
+                        'type' => 'string',
+                    ],
+                    'bar' => [
+                        'type' => 'string',
+                    ],
                 ],
             ],
-        ],
-        'example' => ['[name]=john', '[email]=gmail'],
-    ]);
+            'example' => ['[name]=john', '[email]=gmail'],
+        ]);
 
-});
+    });
 
-class AllowedFiltersExtensionController extends \Illuminate\Routing\Controller
+class AllowedFiltersExtensionController extends Controller
 {
     public function a(): Illuminate\Http\Resources\Json\JsonResource
     {
-        \Spatie\QueryBuilder\QueryBuilder::for(null)
+        QueryBuilder::for(null)
             ->allowedFilters(['foo', 'bar']);
 
         return $this->unknown_fn();

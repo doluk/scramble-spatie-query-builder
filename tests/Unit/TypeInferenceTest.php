@@ -5,29 +5,37 @@ namespace Exonn\ScrambleSpatieQueryBuilder\Tests\Unit;
 use App\Models\Project;
 use Exonn\ScrambleSpatieQueryBuilder\AllowedFiltersExtension;
 use Exonn\ScrambleSpatieQueryBuilder\Tests\TestCase;
+use Illuminate\Contracts\Container\BindingResolutionException;
+use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Route;
+use Spatie\QueryBuilder\QueryBuilder;
 
 uses(TestCase::class);
 
-test('it infers integer type for projectID filter', function () {
-    $queryParam = 'filter';
-    app('config')->set('query-builder.parameters.filter', $queryParam);
+test('it infers integer type for projectID filter',
+    /**
+     * @throws BindingResolutionException
+     */
+    function () {
+        $queryParam = 'filter';
+        app('config')->set('query-builder.parameters.filter', $queryParam);
 
-    $result = $this->generateForRoute(
-        fn() => Route::get('test', [TypeInferenceController::class, 'index']),
-        [AllowedFiltersExtension::class]
-    );
+        $result = $this->generateForRoute(
+            fn () => Route::get('test', [TypeInferenceController::class, 'index']),
+            [AllowedFiltersExtension::class]
+        );
 
-    $properties = $result['paths']['/test']['get']['parameters'][0]['schema']['properties'];
+        $properties = $result['paths']['/test']['get']['parameters'][0]['schema']['properties'];
 
-    expect($properties['projectID']['type'])->toBe('integer');
-});
+        expect($properties['projectID']['type'])->toBe('integer');
+    });
 
-class TypeInferenceController extends \Illuminate\Routing\Controller
+class TypeInferenceController extends Controller
 {
-    public function index(): \Illuminate\Http\Resources\Json\JsonResource
+    public function index(): JsonResource
     {
-        \Spatie\QueryBuilder\QueryBuilder::for(Project::class)
+        QueryBuilder::for(Project::class)
             ->allowedFilters(['projectID', 'status']);
 
         return $this->unknown_fn();

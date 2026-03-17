@@ -11,7 +11,7 @@ class AllowedFilter extends SpatieAllowedFilter
 
     public static function autoDetect(Request $request, string $key, FilterModeEnum $default_mode = FilterModeEnum::Contains): self
     {
-        $mode = $request->input(config(self::FilterModesQueryParamConfigKey).'.'.$key) ?? $default_mode->value;
+        $mode = $request->input(config(self::FilterModesQueryParamConfigKey) . '.' . $key) ?? $default_mode->value;
 
         return match ($mode) {
             FilterModeEnum::StartsWith->value => self::beginsWithStrict($key),

@@ -5,51 +5,57 @@ namespace Exonn\ScrambleSpatieQueryBuilder\Tests\Unit;
 use Exonn\ScrambleSpatieQueryBuilder\AllowedIncludesExtension;
 use Exonn\ScrambleSpatieQueryBuilder\Tests\TestCase;
 use Illuminate;
+use Illuminate\Contracts\Container\BindingResolutionException;
+use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Route;
+use Spatie\QueryBuilder\QueryBuilder;
 
 uses(TestCase::class);
 
-test('test AllowedIncludesExtensions', function () {
+test('test AllowedIncludesExtensions',
+    /**
+     * @throws BindingResolutionException
+     */ function () {
 
-    $queryParam = 'include';
+        $queryParam = 'include';
 
-    app('config')->set('query-builder.parameters.include', $queryParam);
+        app('config')->set('query-builder.parameters.include', $queryParam);
 
-    $result = $this->generateForRoute(
-        fn() => Route::get('test', [AllowedIncludesExtensionController::class, 'a']),
-        [AllowedIncludesExtension::class]
-    );
+        $result = $this->generateForRoute(
+            fn () => Route::get('test', [AllowedIncludesExtensionController::class, 'a']),
+            [AllowedIncludesExtension::class]
+        );
 
-    expect($result['paths']['/test']['get']['parameters'][0])->toBe([
-        'name' => $queryParam,
-        'in' => 'query',
-        'schema' => [
-            'anyOf' => [
-                [
-                    'type' => 'array',
-                    'items' => [
-                        'type' => 'string',
-                        'enum' => [
-                            'foo',
-                            'bar',
+        expect($result['paths']['/test']['get']['parameters'][0])->toBe([
+            'name' => $queryParam,
+            'in' => 'query',
+            'schema' => [
+                'anyOf' => [
+                    [
+                        'type' => 'array',
+                        'items' => [
+                            'type' => 'string',
+                            'enum' => [
+                                'foo',
+                                'bar',
+                            ],
                         ],
                     ],
-                ],
-                [
-                    'type' => 'string',
+                    [
+                        'type' => 'string',
+                    ],
                 ],
             ],
-        ],
-        'example' => ['posts', 'posts.comments', 'books'],
-    ]);
+            'example' => ['posts', 'posts.comments', 'books'],
+        ]);
 
-});
+    });
 
-class AllowedIncludesExtensionController extends \Illuminate\Routing\Controller
+class AllowedIncludesExtensionController extends Controller
 {
     public function a(): Illuminate\Http\Resources\Json\JsonResource
     {
-        \Spatie\QueryBuilder\QueryBuilder::for(null)
+        QueryBuilder::for(null)
             ->allowedIncludes(['foo', 'bar']);
 
         return $this->unknown_fn();

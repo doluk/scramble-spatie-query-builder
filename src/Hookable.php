@@ -10,7 +10,7 @@ trait Hookable
 {
     public static array $hooks = [];
 
-    public static function hook(Closure $cb)
+    public static function hook(Closure $cb): void
     {
         self::$hooks[] = $cb;
     }

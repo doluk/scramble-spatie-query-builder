@@ -9,6 +9,7 @@ use Dedoc\Scramble\Support\Generator\Schema;
 use Dedoc\Scramble\Support\Generator\Types\ArrayType;
 use Dedoc\Scramble\Support\Generator\Types\ObjectType;
 use Dedoc\Scramble\Support\RouteInfo;
+use ReflectionException;
 
 class AllowedFilterModesExtension extends OperationExtension
 {
@@ -18,13 +19,16 @@ class AllowedFilterModesExtension extends OperationExtension
 
     public array $examples = ['[name]=starts_with', '[email]=exact'];
 
-    public function handle(Operation $operation, RouteInfo $routeInfo)
+    /**
+     * @throws ReflectionException
+     */
+    public function handle(Operation $operation, RouteInfo $routeInfo): void
     {
         $helper = new InferHelper;
 
         $methodCall = Utils::findMethodCall($routeInfo, self::MethodName);
 
-        if (! $methodCall) {
+        if (!$methodCall) {
             return;
         }
 
@@ -49,7 +53,7 @@ class AllowedFilterModesExtension extends OperationExtension
             ->example($this->examples);
 
         $halt = $this->runHooks($operation, $parameter);
-        if (! $halt) {
+        if (!$halt) {
             $operation->addParameters([$parameter]);
         }
     }

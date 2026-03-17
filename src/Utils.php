@@ -11,15 +11,14 @@ class Utils
     public static function findMethodCall(RouteInfo $routeInfo, string $methodName): ?Node\Expr\MethodCall
     {
         $methodNode = $routeInfo->actionNode();
-        if (!$methodNode) {
-             return null;
+        if (! $methodNode) {
+            return null;
         }
 
         /** @var Node\Expr\MethodCall|null $methodCall */
         $methodCall = (new NodeFinder)->findFirst(
             $methodNode,
-            fn (Node $node) =>
-                // todo: check if the methodName is called on QueryBuilder
+            fn (Node $node) => // todo: check if the methodName is called on QueryBuilder
                 $node instanceof Node\Expr\MethodCall &&
                 $node->name instanceof Node\Identifier &&
                 $node->name->name === $methodName

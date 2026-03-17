@@ -8,6 +8,7 @@ use PhpParser\Node;
 use PhpParser\Node\ArrayItem;
 use PhpParser\NodeFinder;
 use ReflectionClass;
+use ReflectionException;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\AllowedSort;
 
@@ -15,6 +16,9 @@ class InferHelper
 {
     const string NOT_SUPPORTED_KEY = '--not_supported--';
 
+    /**
+     * @throws ReflectionException
+     */
     public function inferValues(Node\Expr\MethodCall $methodCall, RouteInfo $routeInfo): array
     {
         // ->allowedIncludes()
@@ -56,7 +60,10 @@ class InferHelper
         return [];
     }
 
-    public function inferValuesFromMethodCall(Node\Expr\MethodCall $node, RouteInfo $routeInfo)
+    /**
+     * @throws ReflectionException
+     */
+    public function inferValuesFromMethodCall(Node\Expr\MethodCall|Node\Expr $node, RouteInfo $routeInfo)
     {
         if ($node->var->name !== 'this') {
             return [];
@@ -102,7 +109,7 @@ class InferHelper
     }
 
     /**
-     * @throws \ReflectionException
+     * @throws ReflectionException
      */
     public function getControllerClassContent(RouteInfo $routeInfo): false|string
     {
@@ -112,7 +119,10 @@ class InferHelper
         return file_get_contents($reflection->getFileName());
     }
 
-    public function inferValuesFromPropertyFetch(Node\Expr\PropertyFetch $node, RouteInfo $routeInfo)
+    /**
+     * @throws ReflectionException
+     */
+    public function inferValuesFromPropertyFetch(Node\Expr\PropertyFetch|Node\Expr $node, RouteInfo $routeInfo): array
     {
 
         if ($node->var->name !== 'this') {
@@ -140,7 +150,7 @@ class InferHelper
         );
     }
 
-    public function inferValueFromStaticCall(Node\Expr\StaticCall $node)
+    public function inferValueFromStaticCall(Node\Expr\StaticCall $node): string
     {
         $className = $node->class instanceof Node\Name ? $node->class->toString() : null;
 
@@ -151,7 +161,7 @@ class InferHelper
         };
     }
 
-    public function inferValueFromAllowedFilter(Node\Expr\StaticCall $node)
+    public function inferValueFromAllowedFilter(Node\Expr\StaticCall $node): ?string
     {
         switch ($node->name->name) {
             case 'autoDetect':
@@ -181,7 +191,7 @@ class InferHelper
         }
     }
 
-    public function inferValueFromAllowedSort(Node\Expr\StaticCall $node)
+    public function inferValueFromAllowedSort(Node\Expr\StaticCall $node): ?string
     {
         switch ($node->name->name) {
             case 'callback':
